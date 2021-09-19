@@ -1,8 +1,8 @@
 //Mode.hpp declares the "Mode::current" static member variable, which is used to decide where event-handling, updating, and drawing events go:
 #include "Mode.hpp"
 
-//The 'PlayMode' mode plays the game:
-#include "PlayMode.hpp"
+//The 'TartMode' mode plays the game:
+#include "TartMode.hpp"
 
 //For asset loading:
 #include "Load.hpp"
@@ -50,7 +50,7 @@ int main(int argc, char **argv) {
 
 	//create window:
 	SDL_Window *window = SDL_CreateWindow(
-		"gp21 game2: enter the matr... virtual world", //TODO: remember to set a title for your game!
+		"gp21 game2: Tart Time!", //TODO: remember to set a title for your game!
 		SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
 		1280, 720, //TODO: modify window size if you'd like
 		SDL_WINDOW_OPENGL
@@ -93,7 +93,7 @@ int main(int argc, char **argv) {
 	call_load_functions();
 
 	//------------ create game mode + make current --------------
-	Mode::set_current(std::make_shared< PlayMode >());
+	Mode::set_current(std::make_shared< TartMode >());
 
 	//------------ main loop ------------
 
