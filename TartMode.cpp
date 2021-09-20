@@ -102,14 +102,7 @@ TartMode::~TartMode() {
 }
 
 int8_t TartMode::get_next_available_index() {
-	// std::cout << "*** Current index: " << unsigned(current_fruit_index) << ", num fruit used: " << unsigned(num_fruit) << std::endl;
-
-	// if (num_fruit >= max_fruit) {
-	// 	return -1;
-	// }
-
-	// Try starting at next modulo index
-	uint8_t next_temp = (current_fruit_index + 1) % fruits.size(); //(current_fruit_index + 1) % max_fruit;
+	uint8_t next_temp = (current_fruit_index + 1) % fruits.size(); // Start at wraparound index
 	while (next_temp != current_fruit_index) {
 		assert(next_temp < fruits.size());
 
@@ -131,77 +124,110 @@ int8_t TartMode::get_next_available_index() {
 }
 
 bool TartMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size) {
-	// TODO use these
-	// auto load_fruit = [this](Fruit &fruit) {
-	// 	fruit.staged = true;
-	// 	fruit.transform->position = fruit.init_position;
-	// };
-	// auto unload_fruit = [this](Fruit &fruit) {
-	// 	fruit.staged = false;
-	// 	fruit.transform->position = hidden_fruit_pos;
-	// }
+	auto load_fruit = [](Fruit &fruit) {
+		fruit.available = true;
+		fruit.staged = true;
+		fruit.transform->position = fruit.init_position;
+	};
+	auto unload_fruit = [this](Fruit &fruit) {
+		fruit.staged = false;
+		fruit.transform->position = hidden_fruit_pos;
+	};
 
 	Fruit &current_fruit = fruits[current_fruit_index];
 
 	if (evt.type == SDL_KEYDOWN) {
 		// Handle fruit loading/throwing
 		if (evt.key.keysym.sym == SDLK_SPACE) {
-			// Load current fruit
 			Fruit &current_fruit = fruits[current_fruit_index];
 			if (current_fruit.available) {
-				current_fruit.staged = true;
-				current_fruit.transform->position = current_fruit.init_position;
+				load_fruit(current_fruit);
 			}
 			return true;
 		} 
 		else if (evt.key.keysym.sym == SDLK_t) {
-			// Only allow switching fruits while initial fruit has been loaded
-			if (current_fruit.staged) {
-				// Unload current fruit
-				current_fruit.staged = false;
-				current_fruit.transform->position = hidden_fruit_pos;
+			if (current_fruit.staged) {	// Only allow switching fruits while initial fruit has been loaded
+				unload_fruit(current_fruit);	// Unload current fruit
 
 				assert(current_fruit.available);
 
-				std::cout << "SWITCHING - Current fruit: " << unsigned(current_fruit_index) << ", type = ";
-				if (current_fruit.type == Cherry) std::cout << "Cherry";
-				if (current_fruit.type == Kiwi) std::cout << "Kiwi";
-				if (current_fruit.type == Peach) std::cout << "Peach";
-				if (current_fruit.type == Blueberry) std::cout << "Blueberry";
+				{
+					std::cout << "SWITCHING - Current fruit: " << unsigned(current_fruit_index) << ", type = ";
+					if (current_fruit.type == Cherry) std::cout << "Cherry";
+					if (current_fruit.type == Kiwi) std::cout << "Kiwi";
+					if (current_fruit.type == Peach) std::cout << "Peach";
+					if (current_fruit.type == Blueberry) std::cout << "Blueberry";
+				}
 
 				// Load next available fruit
 				// If there are no available fruit other than the current one, the current fruit gets reloaded
 				get_next_available_index();
 				Fruit &next_fruit = fruits[current_fruit_index];
-				next_fruit.staged = true;
-				next_fruit.transform->position = next_fruit.init_position;
+				load_fruit(next_fruit);
 
-				std::cout << "\tNext fruit: " << unsigned(current_fruit_index) << ", type = ";
-				if (next_fruit.type == Cherry) std::cout << "Cherry"<<std::endl;
-				if (next_fruit.type == Kiwi) std::cout << "Kiwi"<<std::endl;
-				if (next_fruit.type == Peach) std::cout << "Peach"<<std::endl;
-				if (next_fruit.type == Blueberry) std::cout << "Blueberry"<<std::endl;
+				{
+					std::cout << "\tNext fruit: " << unsigned(current_fruit_index) << ", type = ";
+					if (next_fruit.type == Cherry) std::cout << "Cherry"<<std::endl;
+					if (next_fruit.type == Kiwi) std::cout << "Kiwi"<<std::endl;
+					if (next_fruit.type == Peach) std::cout << "Peach"<<std::endl;
+					if (next_fruit.type == Blueberry) std::cout << "Blueberry"<<std::endl;
+				}
 			}
 		}
 		else if (evt.key.keysym.sym == SDLK_u) {
+			if (!placed_fruit_indices.empty()) {
+				
+				unload_fruit(current_fruit); // Unload current fruit (to make way for current one)
 
+				{
+					std::cout << "UNDOING - Current fruit: " << unsigned(current_fruit_index) << ", type = ";
+					if (current_fruit.type == Cherry) std::cout << "Cherry";
+					if (current_fruit.type == Kiwi) std::cout << "Kiwi";
+					if (current_fruit.type == Peach) std::cout << "Peach";
+					if (current_fruit.type == Blueberry) std::cout << "Blueberry";
+				}
+
+				uint8_t placed_index = placed_fruit_indices.top();
+				placed_fruit_indices.pop();
+				current_fruit_index = placed_index;
+				Fruit &last_fruit = fruits[placed_index];
+				load_fruit(last_fruit);
+
+				{
+					std::cout << "\tLast fruit: " << unsigned(current_fruit_index) << ", type = ";
+					if (last_fruit.type == Cherry) std::cout << "Cherry"<<std::endl;
+					if (last_fruit.type == Kiwi) std::cout << "Kiwi"<<std::endl;
+					if (last_fruit.type == Peach) std::cout << "Peach"<<std::endl;
+					if (last_fruit.type == Blueberry) std::cout << "Blueberry"<<std::endl;
+				}
+
+				std::cout<< "Num fruit before: " << unsigned(num_fruit);
+				num_fruit--;
+				std::cout << ", after: " << unsigned(num_fruit) << std::endl;
+			}
 		}
 
 		// Handle rotations (change axis, amount of rotation)
-		 else if (evt.key.keysym.sym == SDLK_x) {
-			current_fruit.rot_axis.x = 1.0f;
-			current_fruit.rot_axis.y = 0;
-			current_fruit.rot_axis.z = 0;
+		else if (evt.key.keysym.sym == SDLK_x) {
+			if (current_fruit.staged) {
+				current_fruit.rot_axis.x = 1.0f;
+				current_fruit.rot_axis.y = 0;
+				current_fruit.rot_axis.z = 0;
+			}
 			return true;
 		} else if (evt.key.keysym.sym == SDLK_y) {
-			current_fruit.rot_axis.x = 0;
-			current_fruit.rot_axis.y = 1.0f;
-			current_fruit.rot_axis.z = 0;
+			if (current_fruit.staged) {
+				current_fruit.rot_axis.x = 0;
+				current_fruit.rot_axis.y = 1.0f;
+				current_fruit.rot_axis.z = 0;
+			}
 			return true;
 		} else if (evt.key.keysym.sym == SDLK_z) {
-			current_fruit.rot_axis.x = 0;
-			current_fruit.rot_axis.y = 0;
-			current_fruit.rot_axis.z = 1.0f;
+			if (current_fruit.staged) {
+				current_fruit.rot_axis.x = 0;
+				current_fruit.rot_axis.y = 0;
+				current_fruit.rot_axis.z = 1.0f;
+			}
 			return true;
 		} else if (evt.key.keysym.sym == SDLK_a) {
 			if (current_fruit.staged) {
@@ -314,13 +340,15 @@ void TartMode::update(float elapsed) {
 		// If collision occurs, delete the fruit from the scene + update current fruit
 		if (glm::length(current_fruit.transform->position - current_fruit.dest_position) < collision_delta) {
 
+			placed_fruit_indices.push(current_fruit_index);		// Add placement to tracker
+
 			// Reset current fruit 
 			// IMPORTANT: New current fruits start off as available, unstaged, and unready
-			fruits[current_fruit_index].available = false;	// TODO: unavailable for placed fruits, but change this when allowing users to remove fruits and replace
+			fruits[current_fruit_index].available = false;
 			fruits[current_fruit_index].staged = false;
 			fruits[current_fruit_index].ready = false;
 
-			num_fruit++;	// update number of placed fruit
+			num_fruit++;												// Update number of placed fruit
 			int8_t index_res = get_next_available_index();
 			if (index_res < 0) {
 				// TODO: add "done" button, condition, to set for drawing caption
@@ -329,8 +357,6 @@ void TartMode::update(float elapsed) {
 		else {	// no collision, apply timestep movement 
 			current_fruit.transform->position += speed * elapsed * glm::normalize(current_fruit.dest_position - current_fruit.transform->position);
 		}
-
-		return;
 	}
 
 	//reset button press counters

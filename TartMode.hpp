@@ -8,6 +8,7 @@
 #include <vector>
 #include <array>
 #include <deque>
+#include <stack>
 
 struct TartMode : Mode {
 	TartMode();
@@ -29,8 +30,6 @@ struct TartMode : Mode {
 	//local copy of the game scene (so code can change it during gameplay):
 	Scene scene;
 
-
-
 	typedef enum FruitKind {
 		Cherry = 0,
 		Kiwi = 1,
@@ -44,7 +43,6 @@ struct TartMode : Mode {
 		bool available = true; 			// Fruits will be marked as unavailable when placed on tart
 		bool staged = false;			// Only stage fruits that have been properly setup
 		bool ready = false;				// Only throw fruits that are ready!
-		bool placed = false;
 		Scene::Transform *transform;	// Transform associated with this fruit
 		glm::vec3 init_position;		// Useful for preparing fruit/throwing fruit
 		glm::vec3 dest_position;		// Final position after throwing fruit onto scene
@@ -70,6 +68,10 @@ struct TartMode : Mode {
 	// Collisions/throwing constants
 	const float collision_delta = 1.5f;
 	const float speed = 10.0f;
+
+
+	// Allow user to undo/redo their throws (for better layering, placement)
+	std::stack<uint8_t> placed_fruit_indices;
 	
 	//camera:
 	Scene::Camera *camera = nullptr;
