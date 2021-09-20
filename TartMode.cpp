@@ -61,7 +61,7 @@ TartMode::TartMode() : scene(*tart_scene) {
 			fruit.transform = &transform;
 			fruit.init_position = transform.position;
 			fruit.dest_position = glm::vec3(0);
-			fruit.rot_axis = glm::vec3(1.0f, 0,0); // default x axis
+			fruit.rot_axis = glm::vec3(1.0f, 0.0f, 0.0f); // default x axis
 			fruits.push_back(fruit);
 			seen_fruits[Cherry] = true;
 			std::cout << glm::to_string(fruit.init_position) << std::endl;
@@ -104,22 +104,17 @@ bool TartMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 		// TODO move incremental adjustments to updates + base math on downs
 		else if (evt.key.keysym.sym == SDLK_LEFT) {
 			if (current_fruit.staged) {
-				std::cout << "rotate bit left" << std::endl;
-				current_fruit.transform->rotation *= 
-					glm::angleAxis(
-						- glm::radians(5.0f * std::sin(2.0f * float(M_PI))),
-						current_fruit.rot_axis
-					);
+				current_fruit.transform->rotation *= glm::angleAxis(
+																		- glm::radians(5.0f),
+																		current_fruit.rot_axis
+																	);
 			}
 		} else if (evt.key.keysym.sym == SDLK_RIGHT) {
 			if (current_fruit.staged) {
-				std::cout << "rotate bit right" << std::endl;
-
-				current_fruit.transform->rotation *= 
-				glm::angleAxis(
-					glm::radians(5.0f * std::sin(2.0f * float(M_PI))),
-					current_fruit.rot_axis
-				);
+				current_fruit.transform->rotation *=  glm::angleAxis(
+																		glm::radians(5.0f),
+																		current_fruit.rot_axis
+																	);
 			}
 		} else if (evt.key.keysym.sym == SDLK_x) {
 			current_fruit.rot_axis.x = 1.0f;
@@ -177,8 +172,10 @@ bool TartMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 				1.0f
 			);
 			glm::vec4 ray_camera = glm::inverse(camera->make_projection()) * ray_clip;
-			ray_camera.z = -1.0f;
+			std::cout << "ray camera: " << glm::to_string(ray_camera);
+			ray_camera.z = -1.0f;		// manually setting z, w 
 			ray_camera.w = 0.0f;
+
 			glm::vec3 ray_world = glm::vec3(glm::mat4(camera->transform->make_local_to_world()) * ray_camera);
 			ray_world = glm::normalize(ray_world);	// Normalize
 

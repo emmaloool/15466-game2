@@ -66,7 +66,7 @@ struct TartMode : Mode {
 
 	// Collisions/throwing constants
 	const float collision_delta = 1.5f;
-	const float speed = 25.0f;
+	const float speed = 10.0f;
 	
 	//camera:
 	Scene::Camera *camera = nullptr;
