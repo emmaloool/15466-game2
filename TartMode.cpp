@@ -39,6 +39,21 @@ Load< Scene > tart_scene(LoadTagDefault, []() -> Scene const * {
 });
 
 TartMode::TartMode() : scene(*tart_scene) {
+	// Helper to setup fruit
+	auto setup_fruit = [this](FruitType type, Scene::Transform &transform) {
+		Fruit fruit;
+		fruit.type = type;
+		fruit.available = true;
+		fruit.staged = false;
+		fruit.ready = false;
+		fruit.transform = &transform;
+		fruit.init_position = transform.position;
+		fruit.dest_position = glm::vec3(0);
+		fruit.rot_axis = glm::vec3(1.0f, 0.0f, 0.0f); // default x axis
+		fruits.push_back(fruit);
+		seen_fruits[type] = true;
+	};
+
 	//get pointer to camera for convenience:
 	if (scene.cameras.size() != 1) throw std::runtime_error("Expecting scene to have exactly one camera, but it has " + std::to_string(scene.cameras.size()));
 	camera = &scene.cameras.front();
@@ -51,29 +66,27 @@ TartMode::TartMode() : scene(*tart_scene) {
 		else if (transform.name == "TartShell") {
 			tart.rim = &transform;
 		}
-		else if (transform.name == "Fruit") {		// TODO change to Cherry after adding remaining fruits
-			// Save fruit state
-			Fruit fruit;
-			fruit.type = Cherry;
-			fruit.available = true;
-			fruit.staged = false;
-			fruit.ready = false;
-			fruit.transform = &transform;
-			fruit.init_position = transform.position;
-			fruit.dest_position = glm::vec3(0);
-			fruit.rot_axis = glm::vec3(1.0f, 0.0f, 0.0f); // default x axis
-			fruits.push_back(fruit);
-			seen_fruits[Cherry] = true;
-			std::cout << glm::to_string(fruit.init_position) << std::endl;
+		else if (transform.name == "Cherry") {
+			setup_fruit(Cherry, transform);
 		}
-		// TODO: add more cases for the other fruits
+		else if (transform.name == "Kiwi") {
+			setup_fruit(Kiwi, transform);
+		}
+		else if (transform.name == "Peach") {
+			setup_fruit(Peach, transform);
+		}
+		else if (transform.name == "Blueberry") {
+			setup_fruit(Blueberry, transform);
+		}
 	}
 
 	if (tart.base == nullptr) throw std::runtime_error("Tart shell base not found.");
 	if (tart.rim == nullptr) throw std::runtime_error("Tart shell rim not found.");
 	if (tart.base == nullptr) throw std::runtime_error("Tart shell rim not found.");
 	if (seen_fruits[Cherry] == false) throw std::runtime_error("Cherry not found.");
-	// TODO add more pointer checks for other fruits
+	if (seen_fruits[Kiwi] == false) throw std::runtime_error("Kiwi not found.");
+	if (seen_fruits[Peach] == false) throw std::runtime_error("Peach not found.");
+	if (seen_fruits[Blueberry] == false) throw std::runtime_error("Blueberry not found.");
 
 	// Initialize "floor" level
 	tart_base_depth = tart.base->position.z;
@@ -101,7 +114,7 @@ bool TartMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 			}
 		} 
 		
-		// TODO move incremental adjustments to updates + base math on downs
+		// Handle rotations (change axis, amount of rotation)
 		else if (evt.key.keysym.sym == SDLK_LEFT) {
 			if (current_fruit.staged) {
 				current_fruit.transform->rotation *= glm::angleAxis(
@@ -129,25 +142,8 @@ bool TartMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 			current_fruit.rot_axis.y = 0;
 			current_fruit.rot_axis.z = 1.0f;
 		} 
-		
-		// else if (evt.key.keysym.sym == SDLK_a) {
-		// 	left.downs += 1;
-		// 	left.pressed = true;
-		// 	return true;
-		// } else if (evt.key.keysym.sym == SDLK_d) {
-		// 	right.downs += 1;
-		// 	right.pressed = true;
-		// 	return true;
-		// }
 	} 
 	// else if (evt.type == SDL_KEYUP) {
-	// 	if (evt.key.keysym.sym == SDLK_a) {
-	// 		left.pressed = false;
-	// 		return true;
-	// 	} else if (evt.key.keysym.sym == SDLK_d) {
-	// 		right.pressed = false;
-	// 		return true;
-	// 	}
 	// }
 	else if (evt.type == SDL_MOUSEBUTTONDOWN) {
 		// Calculate and set the final position after clicking on the scene
@@ -172,8 +168,8 @@ bool TartMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 				1.0f
 			);
 			glm::vec4 ray_camera = glm::inverse(camera->make_projection()) * ray_clip;
-			std::cout << "ray camera: " << glm::to_string(ray_camera);
-			ray_camera.z = -1.0f;		// manually setting z, w 
+			// std::cout << "ray camera: " << glm::to_string(ray_camera);
+			ray_camera.z = -1.0f;		// manually setting z, w, to be safe...
 			ray_camera.w = 0.0f;
 
 			glm::vec3 ray_world = glm::vec3(glm::mat4(camera->transform->make_local_to_world()) * ray_camera);
@@ -182,10 +178,9 @@ bool TartMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 			float time = (tart_base_depth - current_fruit.transform->position.z) / ray_world.z; // time at which fruit hits plane
 			glm::vec3 dest = (ray_world * time) + current_fruit.transform->position;
 			dest.z = tart_base_depth; // Fruits intersect tart plane at the level of its base (z-axis)
-			// std::cout << "current fruit dest before: " << glm::to_string(current_fruit.dest_position);
-			current_fruit.dest_position = dest;
-			// std::cout << ", after: " << glm::to_string(current_fruit.dest_position) << std::endl;
 
+			// After loading fruit, the fruit is ready to be thrown
+			current_fruit.dest_position = dest;
 			current_fruit.ready = true;
 		}
 	}
@@ -194,9 +189,9 @@ bool TartMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 }
 
 int8_t TartMode::get_next_available_index() {
-	std::cout << "current index: " << unsigned(current_fruit_index) << std::endl;
+	std::cout << "*** Current index: " << unsigned(current_fruit_index) << ", num fruit used: " << unsigned(num_fruit) << std::endl;
 
-	if (num_fruit == max_fruit) return -1;
+	if (num_fruit >= max_fruit) return -1;
 
 	// Try starting at next modulo index
 	uint8_t next_temp = (current_fruit_index + 1) % fruits.size(); //(current_fruit_index + 1) % max_fruit;
@@ -204,6 +199,11 @@ int8_t TartMode::get_next_available_index() {
 	while (next_temp != current_fruit_index) {
 		assert(next_temp < fruits.size());
 		if (fruits[next_temp].available) {
+			std::cout << "\tNext index: " << next_temp << ", type = ";
+			if (fruits[next_temp].type == Cherry) std::cout << "Cherry"<<std::endl;
+			if (fruits[next_temp].type == Kiwi) std::cout << "Kiwi"<<std::endl;
+			if (fruits[next_temp].type == Peach) std::cout << "Peach"<<std::endl;
+			if (fruits[next_temp].type == Blueberry) std::cout << "Blueberry"<<std::endl;
 			return next_temp;
 		}
 		next_temp = (next_temp + 1) % max_fruit;
@@ -219,12 +219,10 @@ void TartMode::update(float elapsed) {
 		// Collision is tested by checking magnitude of penetration against collision delta
 		// If collision occurs, delete the fruit from the scene + update current fruit
 		if (glm::length(current_fruit.transform->position - current_fruit.dest_position) < collision_delta) {
-			// std::vector<Fruit>::iterator fr = fruits.begin() + current_fruit_index; // TODO sussy math?
-			// fruits.erase(current_fruit);
 
 			// Reset current fruit 
 			// IMPORTANT: New current fruits start off as available, unstaged, and unready
-			fruits[current_fruit_index].available = true;
+			fruits[current_fruit_index].available = false;	// TODO: unavailable for placed fruits, but change this when allowing users to remove fruits and replace
 			fruits[current_fruit_index].staged = false;
 			fruits[current_fruit_index].ready = false;
 
@@ -234,14 +232,12 @@ void TartMode::update(float elapsed) {
 			if (next_index >= 0) {
 				current_fruit_index = (uint8_t)next_index;
 				assert(current_fruit_index < fruits.size());
-				current_fruit.type 			= fruits[current_fruit_index].type;
-				current_fruit.transform 	= fruits[current_fruit_index].transform;
-				current_fruit.init_position = fruits[current_fruit_index].init_position;
-				current_fruit.dest_position = fruits[current_fruit_index].dest_position;
-				current_fruit.rot_axis 		= fruits[current_fruit_index].rot_axis;
+				// current_fruit.type 			= fruits[current_fruit_index].type;
+				// current_fruit.transform 	= fruits[current_fruit_index].transform;
+				// current_fruit.init_position = fruits[current_fruit_index].init_position;
+				// current_fruit.dest_position = fruits[current_fruit_index].dest_position;
+				// current_fruit.rot_axis 		= fruits[current_fruit_index].rot_axis;
 			}
-
-			
 		}
 		else {	// no collision, apply timestep movement 
 			current_fruit.transform->position += speed * elapsed * glm::normalize(current_fruit.dest_position - current_fruit.transform->position);

@@ -42,18 +42,18 @@ struct TartMode : Mode {
 		bool available = true; 			// Fruits will be marked as unavailable when placed on tart
 		bool staged = false;			// Only stage fruits that have been properly setup
 		bool ready = false;				// Only throw fruits that are ready!
+		bool placed = false;
 		Scene::Transform *transform;	// Transform associated with this fruit
 		glm::vec3 init_position;		// Useful for preparing fruit/throwing fruit
 		glm::vec3 dest_position;		// Final position after throwing fruit onto scene
-		glm::vec3 rot_axis;					// Tracking current rotation axis when editing rotation
+		glm::vec3 rot_axis;				// Tracking current rotation axis when editing rotation
 	};
 	std::vector<Fruit> fruits;
-	std::array<bool, 4> seen_fruits; // just to make sure all fruits were loaded
+	std::array<bool, 4> seen_fruits; 	// just to make sure all fruits were loaded
 
-	// Fruit &current_fruit;
 	uint8_t current_fruit_index = 0;
-	int8_t max_fruit = 10;		// also the max score
-	int8_t num_fruit = 0;		// number of fruits placed
+	uint8_t max_fruit = 4;			// Max amount of fruits in the scene		// TODO change as add fruit
+	uint8_t num_fruit = 0;			// Number of fruits placed
 	int8_t get_next_available_index();
 
 	// Tart Shell
