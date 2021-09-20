@@ -40,12 +40,12 @@ struct TartMode : Mode {
 	struct Fruit {
 		FruitType type = Cherry;		// Fruits are initialized as cherries
 		bool available = true; 			// Fruits will be marked as unavailable when placed on tart
-		bool staged = false;			// Only throw fruits that have been properly setup
-		bool ready = false;			// Only throw fruits that are ready!
+		bool staged = false;			// Only stage fruits that have been properly setup
+		bool ready = false;				// Only throw fruits that are ready!
 		Scene::Transform *transform;	// Transform associated with this fruit
 		glm::vec3 init_position;		// Useful for preparing fruit/throwing fruit
 		glm::vec3 dest_position;		// Final position after throwing fruit onto scene
-		glm::quat rotation;				// Rotate fruit before placing on tart
+		glm::vec3 rot_axis;					// Tracking current rotation axis when editing rotation
 	};
 	std::vector<Fruit> fruits;
 	std::array<bool, 4> seen_fruits; // just to make sure all fruits were loaded

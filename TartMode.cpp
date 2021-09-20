@@ -59,9 +59,9 @@ TartMode::TartMode() : scene(*tart_scene) {
 			fruit.staged = false;
 			fruit.ready = false;
 			fruit.transform = &transform;
-			fruit.rotation = transform.rotation;		// Save a copy of the initial rotation
 			fruit.init_position = transform.position;
 			fruit.dest_position = glm::vec3(0);
+			fruit.rot_axis = glm::vec3(1.0f, 0,0); // default x axis
 			fruits.push_back(fruit);
 			seen_fruits[Cherry] = true;
 			std::cout << glm::to_string(fruit.init_position) << std::endl;
@@ -83,15 +83,13 @@ TartMode::TartMode() : scene(*tart_scene) {
 		fruit.transform->position = tart.base->position;
 		fruit.transform->position.z = tart_base_depth - 10.0f;
 	}
-
-	// Start with first fruit loaded
-	// current_fruit = fruits[0];
 }
 
 TartMode::~TartMode() {
 }
 
 bool TartMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size) {
+	Fruit &current_fruit = fruits[current_fruit_index];
 
 	if (evt.type == SDL_KEYDOWN) {
 		if (evt.key.keysym.sym == SDLK_SPACE) {
@@ -101,41 +99,62 @@ bool TartMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 				current_fruit.staged = true;
 				current_fruit.transform->position = current_fruit.init_position;
 			}
-		} else if (evt.key.keysym.sym == SDLK_a) {
-			left.downs += 1;
-			left.pressed = true;
-			return true;
-		} else if (evt.key.keysym.sym == SDLK_d) {
-			right.downs += 1;
-			right.pressed = true;
-			return true;
-		} else if (evt.key.keysym.sym == SDLK_w) {
-			up.downs += 1;
-			up.pressed = true;
-			return true;
-		} else if (evt.key.keysym.sym == SDLK_s) {
-			down.downs += 1;
-			down.pressed = true;
-			return true;
-		}
-	} else if (evt.type == SDL_KEYUP) {
-		if (evt.key.keysym.sym == SDLK_a) {
-			left.pressed = false;
-			return true;
-		} else if (evt.key.keysym.sym == SDLK_d) {
-			right.pressed = false;
-			return true;
-		} else if (evt.key.keysym.sym == SDLK_w) {
-			up.pressed = false;
-			return true;
-		} else if (evt.key.keysym.sym == SDLK_s) {
-			down.pressed = false;
-			return true;
-		}
-	}
-	else if (evt.type == SDL_MOUSEBUTTONDOWN) {
-		Fruit &current_fruit = fruits[current_fruit_index];
+		} 
+		
+		// TODO move incremental adjustments to updates + base math on downs
+		else if (evt.key.keysym.sym == SDLK_LEFT) {
+			if (current_fruit.staged) {
+				std::cout << "rotate bit left" << std::endl;
+				current_fruit.transform->rotation *= 
+					glm::angleAxis(
+						- glm::radians(5.0f * std::sin(2.0f * float(M_PI))),
+						current_fruit.rot_axis
+					);
+			}
+		} else if (evt.key.keysym.sym == SDLK_RIGHT) {
+			if (current_fruit.staged) {
+				std::cout << "rotate bit right" << std::endl;
 
+				current_fruit.transform->rotation *= 
+				glm::angleAxis(
+					glm::radians(5.0f * std::sin(2.0f * float(M_PI))),
+					current_fruit.rot_axis
+				);
+			}
+		} else if (evt.key.keysym.sym == SDLK_x) {
+			current_fruit.rot_axis.x = 1.0f;
+			current_fruit.rot_axis.y = 0;
+			current_fruit.rot_axis.z = 0;
+		} else if (evt.key.keysym.sym == SDLK_y) {
+			current_fruit.rot_axis.x = 0;
+			current_fruit.rot_axis.y = 1.0f;
+			current_fruit.rot_axis.z = 0;
+		} else if (evt.key.keysym.sym == SDLK_z) {
+			current_fruit.rot_axis.x = 0;
+			current_fruit.rot_axis.y = 0;
+			current_fruit.rot_axis.z = 1.0f;
+		} 
+		
+		// else if (evt.key.keysym.sym == SDLK_a) {
+		// 	left.downs += 1;
+		// 	left.pressed = true;
+		// 	return true;
+		// } else if (evt.key.keysym.sym == SDLK_d) {
+		// 	right.downs += 1;
+		// 	right.pressed = true;
+		// 	return true;
+		// }
+	} 
+	// else if (evt.type == SDL_KEYUP) {
+	// 	if (evt.key.keysym.sym == SDLK_a) {
+	// 		left.pressed = false;
+	// 		return true;
+	// 	} else if (evt.key.keysym.sym == SDLK_d) {
+	// 		right.pressed = false;
+	// 		return true;
+	// 	}
+	// }
+	else if (evt.type == SDL_MOUSEBUTTONDOWN) {
 		// Calculate and set the final position after clicking on the scene
 		// This will be used to test when the fruit intersects the scene after throwing it
 		if (current_fruit.staged) {
@@ -222,7 +241,7 @@ void TartMode::update(float elapsed) {
 				current_fruit.transform 	= fruits[current_fruit_index].transform;
 				current_fruit.init_position = fruits[current_fruit_index].init_position;
 				current_fruit.dest_position = fruits[current_fruit_index].dest_position;
-				current_fruit.rotation 		= fruits[current_fruit_index].rotation;
+				current_fruit.rot_axis 		= fruits[current_fruit_index].rot_axis;
 			}
 
 			
