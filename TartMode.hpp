@@ -27,7 +27,9 @@ struct TartMode : Mode {
 	} left, right, down, up;
 
 	//local copy of the game scene (so code can change it during gameplay):
-	Scene scene;	
+	Scene scene;
+
+
 
 	typedef enum FruitKind {
 		Cherry = 0,
@@ -63,6 +65,7 @@ struct TartMode : Mode {
 	};
 	Tart tart;
 	float tart_base_depth = 1.0f;
+	glm::vec3 hidden_fruit_pos;
 
 	// Collisions/throwing constants
 	const float collision_delta = 1.5f;

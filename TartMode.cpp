@@ -88,23 +88,63 @@ TartMode::TartMode() : scene(*tart_scene) {
 	if (seen_fruits[Peach] == false) throw std::runtime_error("Peach not found.");
 	if (seen_fruits[Blueberry] == false) throw std::runtime_error("Blueberry not found.");
 
-	// Initialize "floor" level
+	// Initialize "floor" level + hidden position
 	tart_base_depth = tart.base->position.z;
+	hidden_fruit_pos = glm::vec3(0.0f, 0.0f, tart_base_depth - 10.0f);
 
 	// "Hide" all loaded fruits
 	for (auto &fruit : fruits) {
-		fruit.transform->position = tart.base->position;
-		fruit.transform->position.z = tart_base_depth - 10.0f;
+		fruit.transform->position = hidden_fruit_pos;
 	}
 }
 
 TartMode::~TartMode() {
 }
 
+int8_t TartMode::get_next_available_index() {
+	// std::cout << "*** Current index: " << unsigned(current_fruit_index) << ", num fruit used: " << unsigned(num_fruit) << std::endl;
+
+	// if (num_fruit >= max_fruit) {
+	// 	return -1;
+	// }
+
+	// Try starting at next modulo index
+	uint8_t next_temp = (current_fruit_index + 1) % fruits.size(); //(current_fruit_index + 1) % max_fruit;
+	while (next_temp != current_fruit_index) {
+		assert(next_temp < fruits.size());
+
+		if (fruits[next_temp].available) {
+			{
+				// std::cout << "\tNext index: " << next_temp << ", type = ";
+				// if (fruits[next_temp].type == Cherry) std::cout << "Cherry"<<std::endl;
+				// if (fruits[next_temp].type == Kiwi) std::cout << "Kiwi"<<std::endl;
+				// if (fruits[next_temp].type == Peach) std::cout << "Peach"<<std::endl;
+				// if (fruits[next_temp].type == Blueberry) std::cout << "Blueberry"<<std::endl;
+			}
+			current_fruit_index = (uint8_t)next_temp;
+			return next_temp;
+		}
+
+		next_temp = (next_temp + 1) % max_fruit;
+	}
+	return -1;
+}
+
 bool TartMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size) {
+	// TODO use these
+	// auto load_fruit = [this](Fruit &fruit) {
+	// 	fruit.staged = true;
+	// 	fruit.transform->position = fruit.init_position;
+	// };
+	// auto unload_fruit = [this](Fruit &fruit) {
+	// 	fruit.staged = false;
+	// 	fruit.transform->position = hidden_fruit_pos;
+	// }
+
 	Fruit &current_fruit = fruits[current_fruit_index];
 
 	if (evt.type == SDL_KEYDOWN) {
+		// Handle fruit loading/throwing
 		if (evt.key.keysym.sym == SDLK_SPACE) {
 			// Load current fruit
 			Fruit &current_fruit = fruits[current_fruit_index];
@@ -112,103 +152,157 @@ bool TartMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 				current_fruit.staged = true;
 				current_fruit.transform->position = current_fruit.init_position;
 			}
+			return true;
 		} 
-		
+		else if (evt.key.keysym.sym == SDLK_t) {
+			// Only allow switching fruits while initial fruit has been loaded
+			if (current_fruit.staged) {
+				// Unload current fruit
+				current_fruit.staged = false;
+				current_fruit.transform->position = hidden_fruit_pos;
+
+				assert(current_fruit.available);
+
+				std::cout << "SWITCHING - Current fruit: " << unsigned(current_fruit_index) << ", type = ";
+				if (current_fruit.type == Cherry) std::cout << "Cherry";
+				if (current_fruit.type == Kiwi) std::cout << "Kiwi";
+				if (current_fruit.type == Peach) std::cout << "Peach";
+				if (current_fruit.type == Blueberry) std::cout << "Blueberry";
+
+				// Load next available fruit
+				// If there are no available fruit other than the current one, the current fruit gets reloaded
+				get_next_available_index();
+				Fruit &next_fruit = fruits[current_fruit_index];
+				next_fruit.staged = true;
+				next_fruit.transform->position = next_fruit.init_position;
+
+				std::cout << "\tNext fruit: " << unsigned(current_fruit_index) << ", type = ";
+				if (next_fruit.type == Cherry) std::cout << "Cherry"<<std::endl;
+				if (next_fruit.type == Kiwi) std::cout << "Kiwi"<<std::endl;
+				if (next_fruit.type == Peach) std::cout << "Peach"<<std::endl;
+				if (next_fruit.type == Blueberry) std::cout << "Blueberry"<<std::endl;
+			}
+		}
+		else if (evt.key.keysym.sym == SDLK_u) {
+
+		}
+
 		// Handle rotations (change axis, amount of rotation)
-		else if (evt.key.keysym.sym == SDLK_LEFT) {
+		 else if (evt.key.keysym.sym == SDLK_x) {
+			current_fruit.rot_axis.x = 1.0f;
+			current_fruit.rot_axis.y = 0;
+			current_fruit.rot_axis.z = 0;
+			return true;
+		} else if (evt.key.keysym.sym == SDLK_y) {
+			current_fruit.rot_axis.x = 0;
+			current_fruit.rot_axis.y = 1.0f;
+			current_fruit.rot_axis.z = 0;
+			return true;
+		} else if (evt.key.keysym.sym == SDLK_z) {
+			current_fruit.rot_axis.x = 0;
+			current_fruit.rot_axis.y = 0;
+			current_fruit.rot_axis.z = 1.0f;
+			return true;
+		} else if (evt.key.keysym.sym == SDLK_a) {
 			if (current_fruit.staged) {
 				current_fruit.transform->rotation *= glm::angleAxis(
 																		- glm::radians(5.0f),
 																		current_fruit.rot_axis
 																	);
 			}
-		} else if (evt.key.keysym.sym == SDLK_RIGHT) {
+			return true;
+		} else if (evt.key.keysym.sym == SDLK_d) {
 			if (current_fruit.staged) {
 				current_fruit.transform->rotation *=  glm::angleAxis(
 																		glm::radians(5.0f),
 																		current_fruit.rot_axis
 																	);
 			}
-		} else if (evt.key.keysym.sym == SDLK_x) {
-			current_fruit.rot_axis.x = 1.0f;
-			current_fruit.rot_axis.y = 0;
-			current_fruit.rot_axis.z = 0;
-		} else if (evt.key.keysym.sym == SDLK_y) {
-			current_fruit.rot_axis.x = 0;
-			current_fruit.rot_axis.y = 1.0f;
-			current_fruit.rot_axis.z = 0;
-		} else if (evt.key.keysym.sym == SDLK_z) {
-			current_fruit.rot_axis.x = 0;
-			current_fruit.rot_axis.y = 0;
-			current_fruit.rot_axis.z = 1.0f;
-		} 
+			return true;
+		}
+
+		// Handle camera movement
+		else if (evt.key.keysym.sym == SDLK_LEFT) {
+			left.downs += 1;
+			left.pressed = true;
+			return true;
+		} else if (evt.key.keysym.sym == SDLK_RIGHT) {
+			right.downs += 1;
+			right.pressed = true;
+			return true;
+		} else if (evt.key.keysym.sym == SDLK_UP) {
+			up.downs += 1;
+			up.pressed = true;
+			return true;
+		} else if (evt.key.keysym.sym == SDLK_DOWN) {
+			down.downs += 1;
+			down.pressed = true;
+			return true;
+		}
 	} 
-	// else if (evt.type == SDL_KEYUP) {
-	// }
+	else if (evt.type == SDL_KEYUP) {
+		// Handle camera movement some more
+		if (evt.key.keysym.sym == SDLK_LEFT) {
+			left.pressed = false;
+			return true;
+		} else if (evt.key.keysym.sym == SDLK_RIGHT) {
+			right.pressed = false;
+			return true;
+		} else if (evt.key.keysym.sym == SDLK_UP) {
+			up.pressed = false;
+			return true;
+		} else if (evt.key.keysym.sym == SDLK_DOWN) {
+			down.pressed = false;
+			return true;
+		}
+	}
+	
 	else if (evt.type == SDL_MOUSEBUTTONDOWN) {
-		// Calculate and set the final position after clicking on the scene
-		// This will be used to test when the fruit intersects the scene after throwing it
+		
 		if (current_fruit.staged) {
 			assert(current_fruit.available);		// only available fruits can be staged!
 
-			// Set position to initial (loading) position
-			current_fruit.transform->position = current_fruit.init_position;
+			// Calculate and set the final position after clicking on the scene
+			// This will be used to test when the fruit intersects the scene after throwing it
+			{
+				// Set position to initial (loading) position
+				current_fruit.transform->position = current_fruit.init_position;
 
-			// Determine the ray to the tart base
-			
-			// This code is based on the code and guide from this website: 
-			// This implementation of determinine the final destination position of the fruit
-			// is inspired by Alyssa's code here: https://github.com/lassyla/game2/blob/master/FishMode.cpp
-			// This also utilizes game0 PlayMode code to get the mouse-to-clip-space position,
-			// but here we want to get a 4-vector for clip coordinates
-			glm::vec4 ray_clip = glm::vec4(				// Homogenous clip coordinates
-				(evt.motion.x + 0.5f) / window_size.x * 2.0f - 1.0f,
-				(evt.motion.y + 0.5f) / window_size.y *-2.0f + 1.0f,
-				1.0f,
-				1.0f
-			);
-			glm::vec4 ray_camera = glm::inverse(camera->make_projection()) * ray_clip;
-			// std::cout << "ray camera: " << glm::to_string(ray_camera);
-			ray_camera.z = -1.0f;		// manually setting z, w, to be safe...
-			ray_camera.w = 0.0f;
+				// Determine the ray to the tart base
+				
+				// This code is based on the code and guide from this website: 
+				// This implementation of determinine the final destination position of the fruit
+				// is inspired by Alyssa's code here: https://github.com/lassyla/game2/blob/master/FishMode.cpp
+				// This also utilizes game0 PlayMode code to get the mouse-to-clip-space position,
+				// but here we want to get a 4-vector for clip coordinates
+				glm::vec4 ray_clip = glm::vec4(				// Homogenous clip coordinates
+					(evt.motion.x + 0.5f) / window_size.x * 2.0f - 1.0f,
+					(evt.motion.y + 0.5f) / window_size.y *-2.0f + 1.0f,
+					1.0f,
+					1.0f
+				);
+				glm::vec4 ray_camera = glm::inverse(camera->make_projection()) * ray_clip;
+				// std::cout << "ray camera: " << glm::to_string(ray_camera);
+				ray_camera.z = -1.0f;		// manually setting z, w, to be safe...
+				ray_camera.w = 0.0f;
 
-			glm::vec3 ray_world = glm::vec3(glm::mat4(camera->transform->make_local_to_world()) * ray_camera);
-			ray_world = glm::normalize(ray_world);	// Normalize
+				glm::vec3 ray_world = glm::vec3(glm::mat4(camera->transform->make_local_to_world()) * ray_camera);
+				ray_world = glm::normalize(ray_world);	// Normalize
 
-			float time = (tart_base_depth - current_fruit.transform->position.z) / ray_world.z; // time at which fruit hits plane
-			glm::vec3 dest = (ray_world * time) + current_fruit.transform->position;
-			dest.z = tart_base_depth; // Fruits intersect tart plane at the level of its base (z-axis)
+				float time = (tart_base_depth - current_fruit.transform->position.z) / ray_world.z; // time at which fruit hits plane
+				glm::vec3 dest = (ray_world * time) + current_fruit.transform->position;
+				dest.z = tart_base_depth; // Fruits intersect tart plane at the level of its base (z-axis)
 
-			// After loading fruit, the fruit is ready to be thrown
-			current_fruit.dest_position = dest;
+				// After loading fruit, the fruit is ready to be thrown
+				current_fruit.dest_position = dest;
+			}
+
 			current_fruit.ready = true;
 		}
+		return true;
 	}
-
+	
 	return false;
-}
-
-int8_t TartMode::get_next_available_index() {
-	std::cout << "*** Current index: " << unsigned(current_fruit_index) << ", num fruit used: " << unsigned(num_fruit) << std::endl;
-
-	if (num_fruit >= max_fruit) return -1;
-
-	// Try starting at next modulo index
-	uint8_t next_temp = (current_fruit_index + 1) % fruits.size(); //(current_fruit_index + 1) % max_fruit;
-	std::cout << "next temp: " << unsigned(next_temp) << std::endl;
-	while (next_temp != current_fruit_index) {
-		assert(next_temp < fruits.size());
-		if (fruits[next_temp].available) {
-			std::cout << "\tNext index: " << next_temp << ", type = ";
-			if (fruits[next_temp].type == Cherry) std::cout << "Cherry"<<std::endl;
-			if (fruits[next_temp].type == Kiwi) std::cout << "Kiwi"<<std::endl;
-			if (fruits[next_temp].type == Peach) std::cout << "Peach"<<std::endl;
-			if (fruits[next_temp].type == Blueberry) std::cout << "Blueberry"<<std::endl;
-			return next_temp;
-		}
-		next_temp = (next_temp + 1) % max_fruit;
-	}
-	return -1;
 }
 
 void TartMode::update(float elapsed) {
@@ -226,17 +320,10 @@ void TartMode::update(float elapsed) {
 			fruits[current_fruit_index].staged = false;
 			fruits[current_fruit_index].ready = false;
 
-			num_fruit++;	// update number of placed fruits
-
-			int8_t next_index = get_next_available_index();
-			if (next_index >= 0) {
-				current_fruit_index = (uint8_t)next_index;
-				assert(current_fruit_index < fruits.size());
-				// current_fruit.type 			= fruits[current_fruit_index].type;
-				// current_fruit.transform 	= fruits[current_fruit_index].transform;
-				// current_fruit.init_position = fruits[current_fruit_index].init_position;
-				// current_fruit.dest_position = fruits[current_fruit_index].dest_position;
-				// current_fruit.rot_axis 		= fruits[current_fruit_index].rot_axis;
+			num_fruit++;	// update number of placed fruit
+			int8_t index_res = get_next_available_index();
+			if (index_res < 0) {
+				// TODO: add "done" button, condition, to set for drawing caption
 			}
 		}
 		else {	// no collision, apply timestep movement 
