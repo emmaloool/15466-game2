@@ -173,6 +173,7 @@ bool TartMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 					if (next_fruit.type == Blueberry) std::cout << "Blueberry"<<std::endl;
 				}
 			}
+			return true;
 		}
 		else if (evt.key.keysym.sym == SDLK_u) {
 			if (!placed_fruit_indices.empty()) {
@@ -205,6 +206,7 @@ bool TartMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 				num_fruit--;
 				std::cout << ", after: " << unsigned(num_fruit) << std::endl;
 			}
+			return true;
 		}
 
 		// Handle rotations (change axis, amount of rotation)
@@ -248,7 +250,16 @@ bool TartMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 		}
 
 		// Handle camera movement
-		else if (evt.key.keysym.sym == SDLK_LEFT) {
+		else if (evt.key.keysym.sym == SDLK_RETURN) {
+			if (SDL_GetRelativeMouseMode() == SDL_FALSE) {
+				SDL_SetRelativeMouseMode(SDL_TRUE);
+				return true;
+			}
+		}
+		else if (evt.key.keysym.sym == SDLK_ESCAPE) {
+			SDL_SetRelativeMouseMode(SDL_FALSE);
+			return true;			
+		} else if (evt.key.keysym.sym == SDLK_LEFT) {
 			left.downs += 1;
 			left.pressed = true;
 			return true;
@@ -265,6 +276,7 @@ bool TartMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 			down.pressed = true;
 			return true;
 		}
+
 	} 
 	else if (evt.type == SDL_KEYUP) {
 		// Handle camera movement some more
@@ -326,6 +338,21 @@ bool TartMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 			current_fruit.ready = true;
 		}
 		return true;
+	} 
+	
+	else if (evt.type == SDL_MOUSEMOTION) {
+		if (SDL_GetRelativeMouseMode() == SDL_TRUE) {
+			glm::vec2 motion = glm::vec2(
+				evt.motion.xrel / float(window_size.y),
+				-evt.motion.yrel / float(window_size.y)
+			);
+			camera->transform->rotation = glm::normalize(
+				camera->transform->rotation
+				* glm::angleAxis(-motion.x * camera->fovy, glm::vec3(0.0f, 1.0f, 0.0f))
+				* glm::angleAxis(motion.y * camera->fovy, glm::vec3(1.0f, 0.0f, 0.0f))
+			);
+			return true;
+		}
 	}
 	
 	return false;
@@ -357,6 +384,27 @@ void TartMode::update(float elapsed) {
 		else {	// no collision, apply timestep movement 
 			current_fruit.transform->position += speed * elapsed * glm::normalize(current_fruit.dest_position - current_fruit.transform->position);
 		}
+	}
+
+	//move camera:
+	{
+		//combine inputs into a move:
+		constexpr float PlayerSpeed = 30.0f;
+		glm::vec2 move = glm::vec2(0.0f);
+		if (left.pressed && !right.pressed) move.x =-1.0f;
+		if (!left.pressed && right.pressed) move.x = 1.0f;
+		if (down.pressed && !up.pressed) move.y =-1.0f;
+		if (!down.pressed && up.pressed) move.y = 1.0f;
+
+		//make it so that moving diagonally doesn't go faster:
+		if (move != glm::vec2(0.0f)) move = glm::normalize(move) * PlayerSpeed * elapsed;
+
+		glm::mat4x3 frame = camera->transform->make_local_to_parent();
+		glm::vec3 right = frame[0];
+		//glm::vec3 up = frame[1];
+		glm::vec3 forward = -frame[2];
+
+		camera->transform->position += move.x * right + move.y * forward;
 	}
 
 	//reset button press counters
