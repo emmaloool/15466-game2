@@ -133,23 +133,10 @@ TartMode::~TartMode() {
 int8_t TartMode::get_next_available_index() {
 	uint8_t next_temp = (current_fruit_index + 1) % fruits.size(); // Start at wraparound index
 	while (next_temp != current_fruit_index) {
-		assert(next_temp < fruits.size());
-
 		if (fruits[next_temp].available) {
-			{
-				// std::cout << "\tNext index: " << next_temp << ", type = ";
-				// if (fruits[next_temp].type == Cherry) std::cout << "Cherry"<<std::endl;
-				// if (fruits[next_temp].type == Blueberry) std::cout << "Blueberry"<<std::endl;
-				// if (fruits[next_temp].type == Banana) std::cout << "Banana"<<std::endl;
-				// if (fruits[next_temp].type == GreenKiwi) std::cout << "GreenKiwi"<<std::endl;
-				// if (fruits[next_temp].type == YellowKiwi) std::cout << "YellowKiwi"<<std::endl;
-				// if (fruits[next_temp].type == Honeydew) std::cout << "Honeydew"<<std::endl;
-				// if (fruits[next_temp].type == Cantaloupe) std::cout << "Cantaloupe"<<std::endl;
-			}
 			current_fruit_index = (uint8_t)next_temp;
 			return next_temp;
 		}
-
 		next_temp = (next_temp + 1) % max_fruit;
 	}
 	return -1;
@@ -179,94 +166,49 @@ bool TartMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 		} 
 		else if (evt.key.keysym.sym == SDLK_t) {
 			if (current_fruit.staged) {	// Only allow switching fruits while initial fruit has been loaded
-				unload_fruit(current_fruit);	// Unload current fruit
-
-				{
-					// std::cout << "SWITCHING - Current fruit: " << unsigned(current_fruit_index) << ", type = ";
-					// if (current_fruit.type == Cherry) std::cout << "Cherry";
-					// if (current_fruit.type == Blueberry) std::cout << "Blueberry";
-					// if (current_fruit.type == Banana) std::cout << "Banana";
-					// if (current_fruit.type == GreenKiwi) std::cout << "GreenKiwi";
-					// if (current_fruit.type == YellowKiwi) std::cout << "YellowKiwi";
-					// if (current_fruit.type == Honeydew) std::cout << "Honeydew";
-					// if (current_fruit.type == Cantaloupe) std::cout << "Cantaloupe";
-				}
+				// Unload current fruit
+				unload_fruit(current_fruit);
 
 				// Load next available fruit
 				// If there are no available fruit other than the current one, the current fruit gets reloaded
 				get_next_available_index();
 				Fruit &next_fruit = fruits[current_fruit_index];
 				load_fruit(next_fruit);
-
-				{
-					// std::cout << "\tNext fruit: " << unsigned(current_fruit_index) << ", type = ";
-					// if (next_fruit.type == Cherry) std::cout << "Cherry"<<std::endl;
-					// if (next_fruit.type == Blueberry) std::cout << "Blueberry"<<std::endl;
-					// if (next_fruit.type == Banana) std::cout << "Banana"<<std::endl;
-					// if (next_fruit.type == GreenKiwi) std::cout << "GreenKiwi"<<std::endl;
-					// if (next_fruit.type == YellowKiwi) std::cout << "YellowKiwi"<<std::endl;
-					// if (next_fruit.type == Honeydew) std::cout << "Honeydew"<<std::endl;
-					// if (next_fruit.type == Cantaloupe) std::cout << "Cantaloupe"<<std::endl;
-				}
 			}
 			return true;
 		}
 		else if (evt.key.keysym.sym == SDLK_u) {
 			if (!placed_fruit_indices.empty()) {
-				
-				unload_fruit(current_fruit); // Unload current fruit (to make way for current one)
+				// Unload current fruit (to make way for current one)
+				unload_fruit(current_fruit); 
 
-				{
-					// std::cout << "UNDOING - Current fruit: " << unsigned(current_fruit_index) << ", type = ";
-					// if (current_fruit.type == Cherry) std::cout << "Cherry";
-					// if (current_fruit.type == Blueberry) std::cout << "Blueberry";
-					// if (current_fruit.type == Banana) std::cout << "Banana";
-					// if (current_fruit.type == GreenKiwi) std::cout << "GreenKiwi";
-					// if (current_fruit.type == YellowKiwi) std::cout << "YellowKiwi";
-					// if (current_fruit.type == Honeydew) std::cout << "Honeydew";
-					// if (current_fruit.type == Cantaloupe) std::cout << "Cantaloupe";
-				}
-
+				// Load most previously placed fruit
 				uint8_t placed_index = placed_fruit_indices.top();
 				placed_fruit_indices.pop();
 				current_fruit_index = placed_index;
 				Fruit &last_fruit = fruits[placed_index];
 				load_fruit(last_fruit);
-
-				{
-					// std::cout << "\tLast fruit: " << unsigned(current_fruit_index) << ", type = ";
-					// if (last_fruit.type == Cherry) std::cout << "Cherry"<<std::endl;
-					// if (last_fruit.type == Blueberry) std::cout << "Blueberry"<<std::endl;
-					// if (last_fruit.type == Banana) std::cout << "Banana"<<std::endl;
-					// if (last_fruit.type == GreenKiwi) std::cout << "GreenKiwi"<<std::endl;
-					// if (last_fruit.type == YellowKiwi) std::cout << "YellowKiwi"<<std::endl;
-					// if (last_fruit.type == Honeydew) std::cout << "Honeydew"<<std::endl;
-					// if (last_fruit.type == Cantaloupe) std::cout << "Cantaloupe"<<std::endl;
-				}
-
-				// std::cout<< "Num fruit before: " << unsigned(num_fruit);
 				num_fruit--;
-				// std::cout << ", after: " << unsigned(num_fruit) << std::endl;
 			}
 			return true;
 		}
 
 		// Handle rotations (change axis, amount of rotation)
-		else if (evt.key.keysym.sym == SDLK_x) {
+		else if (evt.key.keysym.sym == SDLK_1) {
 			if (current_fruit.staged) {
 				current_fruit.rot_axis.x = 1.0f;
 				current_fruit.rot_axis.y = 0;
 				current_fruit.rot_axis.z = 0;
 			}
 			return true;
-		} else if (evt.key.keysym.sym == SDLK_y) {
+		} else if (evt.key.keysym.sym == SDLK_2) {
 			if (current_fruit.staged) {
 				current_fruit.rot_axis.x = 0;
 				current_fruit.rot_axis.y = 1.0f;
 				current_fruit.rot_axis.z = 0;
 			}
 			return true;
-		} else if (evt.key.keysym.sym == SDLK_z) {
+		} else if (evt.key.keysym.sym == SDLK_3) {
 			if (current_fruit.staged) {
 				current_fruit.rot_axis.x = 0;
 				current_fruit.rot_axis.y = 0;
@@ -320,8 +262,10 @@ bool TartMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 		}
 
 	} 
+
+	// Handle camera movement some more
 	else if (evt.type == SDL_KEYUP) {
-		// Handle camera movement some more
+		
 		if (evt.key.keysym.sym == SDLK_LEFT) {
 			left.pressed = false;
 			return true;
@@ -340,7 +284,7 @@ bool TartMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 	else if (evt.type == SDL_MOUSEBUTTONDOWN) {
 		
 		if (current_fruit.staged) {
-			assert(current_fruit.available);		// only available fruits can be staged!
+			// assert(current_fruit.available);		// only available fruits can be staged!
 
 			// Calculate and set the final position after clicking on the scene
 			// This will be used to test when the fruit intersects the scene after throwing it
@@ -362,7 +306,6 @@ bool TartMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 					1.0f
 				);
 				glm::vec4 ray_camera = glm::inverse(camera->make_projection()) * ray_clip;
-				// std::cout << "ray camera: " << glm::to_string(ray_camera);
 				ray_camera.z = -1.0f;		// manually setting z, w, to be safe...
 				ray_camera.w = 0.0f;
 

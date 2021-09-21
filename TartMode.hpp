@@ -34,7 +34,6 @@ struct TartMode : Mode {
 		Cherry = 0,
 		Blueberry = 1,
 		Banana = 2,
-
 		GreenKiwi = 3,
 		YellowKiwi = 4,
 		Honeydew = 5,
@@ -78,7 +77,6 @@ struct TartMode : Mode {
 	// Collisions/throwing constants
 	const float collision_delta = 1.5f;
 	const float speed = 10.0f;
-
 
 	// Allow user to undo/redo their throws (for better layering, placement)
 	std::stack<uint8_t> placed_fruit_indices;
