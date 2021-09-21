@@ -39,13 +39,14 @@ struct TartMode : Mode {
 		YellowKiwi = 4,
 		Honeydew = 5,
 		Cantaloupe = 6,
-		// Watermelon = 7,
-		// WhiteDragonFruit = 8,
-		// RedDragonFruit = 9
+		Watermelon = 7,
+		WhiteDragonFruit = 8,
+		RedDragonFruit = 9
 	} FruitType;
 
 	// Wrapper for instances of various fruit objects
 	struct Fruit {
+		std::string name; 		// For display purposes
 		FruitType type = Cherry;		// Fruits are initialized as cherries
 		bool available = true; 			// Fruits will be marked as unavailable when placed on tart
 		bool staged = false;			// Only stage fruits that have been properly setup
@@ -58,8 +59,8 @@ struct TartMode : Mode {
 	std::vector<Fruit> fruits;
 
 	uint8_t current_fruit_index = 0;
-	static const uint8_t max_fruit = 7;	// Max amount of fruits in the scene // TODO change as add fruit
-	uint8_t num_fruit = 0;				// Number of fruits placed
+	static const uint8_t max_fruit = 10;		// Max amount of fruits in the scene
+	uint8_t num_fruit = 0;						// Number of fruits placed
 	std::array<bool, max_fruit> seen_fruits; 	// just to make sure all fruits were loaded
 
 	int8_t get_next_available_index();
@@ -86,6 +87,3 @@ struct TartMode : Mode {
 	Scene::Camera *camera = nullptr;
 
 };
-
-
-//8.1, -3.3, 8.3

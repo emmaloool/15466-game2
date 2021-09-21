@@ -40,8 +40,9 @@ Load< Scene > tart_scene(LoadTagDefault, []() -> Scene const * {
 
 TartMode::TartMode() : scene(*tart_scene) {
 	// Helper to setup fruit
-	auto setup_fruit = [this](FruitType type, Scene::Transform &transform) {
+	auto setup_fruit = [this](FruitType type, Scene::Transform &transform, std::string name) {
 		Fruit fruit;
+		fruit.name = name;
 		fruit.type = type;
 		fruit.available = true;
 		fruit.staged = false;
@@ -70,25 +71,34 @@ TartMode::TartMode() : scene(*tart_scene) {
 			tart.cream = &transform;
 		}
 		else if (transform.name == "Cherry") {
-			setup_fruit(Cherry, transform);
+			setup_fruit(Cherry, transform, "Cherry");
 		}
 		else if (transform.name == "Blueberry") {
-			setup_fruit(Blueberry, transform);
+			setup_fruit(Blueberry, transform, "Blueberry");
 		}
 		else if (transform.name == "Banana") {
-			setup_fruit(Banana, transform);
+			setup_fruit(Banana, transform, "Banana");
 		}
 		else if (transform.name == "GreenKiwi") {
-			setup_fruit(GreenKiwi, transform);
+			setup_fruit(GreenKiwi, transform, "Green Kiwi");
 		}
 		else if (transform.name == "YellowKiwi") {
-			setup_fruit(YellowKiwi, transform);
+			setup_fruit(YellowKiwi, transform, "Yellow Kiwi");
 		}
 		else if (transform.name == "Honeydew") {
-			setup_fruit(Honeydew, transform);
+			setup_fruit(Honeydew, transform, "Honeydew");
 		}
 		else if (transform.name == "Cantaloupe") {
-			setup_fruit(Cantaloupe, transform);
+			setup_fruit(Cantaloupe, transform, "Cantaloupe");
+		}
+		else if (transform.name == "Watermelon") {
+			setup_fruit(Watermelon, transform, "Watermelon");
+		}
+		else if (transform.name == "WhiteDragonFruit") {
+			setup_fruit(WhiteDragonFruit, transform, "White Dragon Fruit");
+		}
+		else if (transform.name == "RedDragonFruit") {
+			setup_fruit(RedDragonFruit, transform, "Red Dragon Fruit");
 		}
 	}
 
@@ -103,6 +113,9 @@ TartMode::TartMode() : scene(*tart_scene) {
 	if (seen_fruits[YellowKiwi] == false) throw std::runtime_error("YellowKiwi not found.");
 	if (seen_fruits[Honeydew] == false) throw std::runtime_error("Honeydew not found.");
 	if (seen_fruits[Cantaloupe] == false) throw std::runtime_error("Cantaloupe not found.");
+	if (seen_fruits[Watermelon] == false) throw std::runtime_error("Watermelon not found.");
+	if (seen_fruits[WhiteDragonFruit] == false) throw std::runtime_error("WhiteDragonFruit not found.");
+	if (seen_fruits[RedDragonFruit] == false) throw std::runtime_error("RedDragonFruit not found.");
 
 	// Initialize "floor" level + hidden position
 	tart_base_depth = tart.base->position.z;
@@ -168,17 +181,15 @@ bool TartMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 			if (current_fruit.staged) {	// Only allow switching fruits while initial fruit has been loaded
 				unload_fruit(current_fruit);	// Unload current fruit
 
-				assert(current_fruit.available);
-
 				{
-					std::cout << "SWITCHING - Current fruit: " << unsigned(current_fruit_index) << ", type = ";
-					if (current_fruit.type == Cherry) std::cout << "Cherry";
-					if (current_fruit.type == Blueberry) std::cout << "Blueberry";
-					if (current_fruit.type == Banana) std::cout << "Banana";
-					if (current_fruit.type == GreenKiwi) std::cout << "GreenKiwi";
-					if (current_fruit.type == YellowKiwi) std::cout << "YellowKiwi";
-					if (current_fruit.type == Honeydew) std::cout << "Honeydew";
-					if (current_fruit.type == Cantaloupe) std::cout << "Cantaloupe";
+					// std::cout << "SWITCHING - Current fruit: " << unsigned(current_fruit_index) << ", type = ";
+					// if (current_fruit.type == Cherry) std::cout << "Cherry";
+					// if (current_fruit.type == Blueberry) std::cout << "Blueberry";
+					// if (current_fruit.type == Banana) std::cout << "Banana";
+					// if (current_fruit.type == GreenKiwi) std::cout << "GreenKiwi";
+					// if (current_fruit.type == YellowKiwi) std::cout << "YellowKiwi";
+					// if (current_fruit.type == Honeydew) std::cout << "Honeydew";
+					// if (current_fruit.type == Cantaloupe) std::cout << "Cantaloupe";
 				}
 
 				// Load next available fruit
@@ -188,14 +199,14 @@ bool TartMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 				load_fruit(next_fruit);
 
 				{
-					std::cout << "\tNext fruit: " << unsigned(current_fruit_index) << ", type = ";
-					if (next_fruit.type == Cherry) std::cout << "Cherry"<<std::endl;
-					if (next_fruit.type == Blueberry) std::cout << "Blueberry"<<std::endl;
-					if (next_fruit.type == Banana) std::cout << "Banana"<<std::endl;
-					if (next_fruit.type == GreenKiwi) std::cout << "GreenKiwi"<<std::endl;
-					if (next_fruit.type == YellowKiwi) std::cout << "YellowKiwi"<<std::endl;
-					if (next_fruit.type == Honeydew) std::cout << "Honeydew"<<std::endl;
-					if (next_fruit.type == Cantaloupe) std::cout << "Cantaloupe"<<std::endl;
+					// std::cout << "\tNext fruit: " << unsigned(current_fruit_index) << ", type = ";
+					// if (next_fruit.type == Cherry) std::cout << "Cherry"<<std::endl;
+					// if (next_fruit.type == Blueberry) std::cout << "Blueberry"<<std::endl;
+					// if (next_fruit.type == Banana) std::cout << "Banana"<<std::endl;
+					// if (next_fruit.type == GreenKiwi) std::cout << "GreenKiwi"<<std::endl;
+					// if (next_fruit.type == YellowKiwi) std::cout << "YellowKiwi"<<std::endl;
+					// if (next_fruit.type == Honeydew) std::cout << "Honeydew"<<std::endl;
+					// if (next_fruit.type == Cantaloupe) std::cout << "Cantaloupe"<<std::endl;
 				}
 			}
 			return true;
@@ -206,14 +217,14 @@ bool TartMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 				unload_fruit(current_fruit); // Unload current fruit (to make way for current one)
 
 				{
-					std::cout << "UNDOING - Current fruit: " << unsigned(current_fruit_index) << ", type = ";
-					if (current_fruit.type == Cherry) std::cout << "Cherry";
-					if (current_fruit.type == Blueberry) std::cout << "Blueberry";
-					if (current_fruit.type == Banana) std::cout << "Banana";
-					if (current_fruit.type == GreenKiwi) std::cout << "GreenKiwi";
-					if (current_fruit.type == YellowKiwi) std::cout << "YellowKiwi";
-					if (current_fruit.type == Honeydew) std::cout << "Honeydew";
-					if (current_fruit.type == Cantaloupe) std::cout << "Cantaloupe";
+					// std::cout << "UNDOING - Current fruit: " << unsigned(current_fruit_index) << ", type = ";
+					// if (current_fruit.type == Cherry) std::cout << "Cherry";
+					// if (current_fruit.type == Blueberry) std::cout << "Blueberry";
+					// if (current_fruit.type == Banana) std::cout << "Banana";
+					// if (current_fruit.type == GreenKiwi) std::cout << "GreenKiwi";
+					// if (current_fruit.type == YellowKiwi) std::cout << "YellowKiwi";
+					// if (current_fruit.type == Honeydew) std::cout << "Honeydew";
+					// if (current_fruit.type == Cantaloupe) std::cout << "Cantaloupe";
 				}
 
 				uint8_t placed_index = placed_fruit_indices.top();
@@ -223,19 +234,19 @@ bool TartMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 				load_fruit(last_fruit);
 
 				{
-					std::cout << "\tLast fruit: " << unsigned(current_fruit_index) << ", type = ";
-					if (last_fruit.type == Cherry) std::cout << "Cherry"<<std::endl;
-					if (last_fruit.type == Blueberry) std::cout << "Blueberry"<<std::endl;
-					if (last_fruit.type == Banana) std::cout << "Banana"<<std::endl;
-					if (last_fruit.type == GreenKiwi) std::cout << "GreenKiwi"<<std::endl;
-					if (last_fruit.type == YellowKiwi) std::cout << "YellowKiwi"<<std::endl;
-					if (last_fruit.type == Honeydew) std::cout << "Honeydew"<<std::endl;
-					if (last_fruit.type == Cantaloupe) std::cout << "Cantaloupe"<<std::endl;
+					// std::cout << "\tLast fruit: " << unsigned(current_fruit_index) << ", type = ";
+					// if (last_fruit.type == Cherry) std::cout << "Cherry"<<std::endl;
+					// if (last_fruit.type == Blueberry) std::cout << "Blueberry"<<std::endl;
+					// if (last_fruit.type == Banana) std::cout << "Banana"<<std::endl;
+					// if (last_fruit.type == GreenKiwi) std::cout << "GreenKiwi"<<std::endl;
+					// if (last_fruit.type == YellowKiwi) std::cout << "YellowKiwi"<<std::endl;
+					// if (last_fruit.type == Honeydew) std::cout << "Honeydew"<<std::endl;
+					// if (last_fruit.type == Cantaloupe) std::cout << "Cantaloupe"<<std::endl;
 				}
 
-				std::cout<< "Num fruit before: " << unsigned(num_fruit);
+				// std::cout<< "Num fruit before: " << unsigned(num_fruit);
 				num_fruit--;
-				std::cout << ", after: " << unsigned(num_fruit) << std::endl;
+				// std::cout << ", after: " << unsigned(num_fruit) << std::endl;
 			}
 			return true;
 		}
@@ -406,7 +417,7 @@ void TartMode::update(float elapsed) {
 			fruits[current_fruit_index].staged = false;
 			fruits[current_fruit_index].ready = false;
 
-			num_fruit++;												// Update number of placed fruit
+			num_fruit++;	// Update number of placed fruit
 			get_next_available_index();
 		}
 		else {	// no collision, apply timestep movement 
@@ -466,4 +477,39 @@ void TartMode::draw(glm::uvec2 const &drawable_size) {
 	GL_ERRORS(); //print any errors produced by this setup code
 
 	scene.draw(*camera);
+
+	{ //use DrawLines to overlay some text:
+		glDisable(GL_DEPTH_TEST);
+		float aspect = float(drawable_size.x) / float(drawable_size.y);
+		DrawLines lines(glm::mat4(
+			1.0f / aspect, 0.0f, 0.0f, 0.0f,
+			0.0f, 1.0f, 0.0f, 0.0f,
+			0.0f, 0.0f, 1.0f, 0.0f,
+			0.0f, 0.0f, 0.0f, 1.0f
+		));
+
+		constexpr float H = 0.09f;
+		if (num_fruit == max_fruit) {
+			lines.draw_text("You finished the tart! :)",
+				glm::vec3(-aspect + 0.1f * H, -1.0 + 0.1f * H, 0.0),
+				glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
+				glm::u8vec4(0x00, 0x00, 0x00, 0x00));
+			float ofs = 2.0f / drawable_size.y;
+			lines.draw_text("You finished the tart! :)",
+				glm::vec3(-aspect + 0.1f * H + ofs, -1.0 + + 0.1f * H + ofs, 0.0),
+				glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
+				glm::u8vec4(0xff, 0xff, 0xff, 0x00));
+		}
+		else {
+			lines.draw_text("Current Fruit: " + fruits[current_fruit_index].name + ", # Fruits Placed: " + std::to_string(num_fruit),
+				glm::vec3(-aspect + 0.1f * H, -1.0 + 0.1f * H, 0.0),
+				glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
+				glm::u8vec4(0x00, 0x00, 0x00, 0x00));
+			float ofs = 2.0f / drawable_size.y;
+			lines.draw_text("Current Fruit: " + fruits[current_fruit_index].name + ", # Fruits Placed: " + std::to_string(num_fruit),
+				glm::vec3(-aspect + 0.1f * H + ofs, -1.0 + + 0.1f * H + ofs, 0.0),
+				glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
+				glm::u8vec4(0xff, 0xff, 0xff, 0x00));
+		}
+	}
 }
