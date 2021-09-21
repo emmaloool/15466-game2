@@ -1,22 +1,36 @@
-# (TODO: your game's title)
+# Tart Time!
 
-Author: (TODO: your name)
+Author: Emma Liu
 
-Design: (TODO: In two sentences or fewer, describe what is new and interesting about your game.)
+Design: You are an elite pastry chef from Le Cordon Blue in France! Arrange this tart full of colorful fruits to your heart's content. There is no score objective for this game, only aesthetics, which makes it perfect for perfectionists. 
 
 Screen Shot:
 
 ![Screen Shot](screenshot.png)
 
-How Your Asset Pipeline Works:
-
-(TODO: describe the steps in your asset pipeline, from source files to tiles/backgrounds/whatever you upload to the PPU466.)
-
 How To Play:
 
-(TODO: describe the controls and (if needed) goals/strategy.)
+You will need to place 10 fruits on the tart, but you can do this in any order. Prior to placing the fruit on the tart, load it into the staging area and rotate it until its orientation pleases you. Unlike real life, you can undo and redo your fruit placements to your heart's content. Once you're done, take a pic for your food insta!
 
-Sources: (TODO: list a source URL for any assets you did not create yourself. Make sure you have a license for the asset.)
+To place fruits:
+- SPACEBAR: Load fruit into staging zone (you can't rotate/place the piece until you do this)
+- 1,2,3: Toggle between fruit's local axes
+- A/D: Increment/decrement rotation around set axis
+- T: Toggle to set different fruit (among others not placed on tart yet)
+- U: Undo placed moves (in LIFO order)
+- Mouse click: Throw the fruit into the scene. It will roughly land where your cursor selected.
+
+To control the camera view:
+- ENTER: Enter camera edit mode
+- ESC: Exit camera edit mode
+- LEFT/RIGHT/UP/DOWN: Move the camera
+- Mouse motion: Rotate the camera
+
+Sources: 
+
+These assets were built by myself in Blender. I used the following tutorials as inspiration:
+- [Making a cherry in blender step by step easy tutorial](https://www.youtube.com/watch?v=TwdakP4BfE4&ab_channel=GraphicalGurujii)
+- [Create a blueberry in Blender in 1 Minute](https://www.youtube.com/watch?v=MlGn040MRwo&ab_channel=1minuteBlender)
 
 This game was built with [NEST](NEST.md).
 

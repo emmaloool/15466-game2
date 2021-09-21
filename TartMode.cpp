@@ -295,7 +295,7 @@ bool TartMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 				// Determine the ray to the tart base
 				
 				// This code is based on the code and guide from this website: 
-				// This implementation of determinine the final destination position of the fruit
+				// This implementation of determining the final destination position of the fruit
 				// is inspired by Alyssa's code here: https://github.com/lassyla/game2/blob/master/FishMode.cpp
 				// This also utilizes game0 PlayMode code to get the mouse-to-clip-space position,
 				// but here we want to get a 4-vector for clip coordinates
