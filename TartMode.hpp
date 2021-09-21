@@ -32,9 +32,16 @@ struct TartMode : Mode {
 
 	typedef enum FruitKind {
 		Cherry = 0,
-		Kiwi = 1,
-		Peach = 2,
-		Blueberry = 3
+		Blueberry = 1,
+		Banana = 2,
+
+		GreenKiwi = 3,
+		YellowKiwi = 4,
+		Honeydew = 5,
+		Cantaloupe = 6,
+		// Watermelon = 7,
+		// WhiteDragonFruit = 8,
+		// RedDragonFruit = 9
 	} FruitType;
 
 	// Wrapper for instances of various fruit objects
@@ -49,17 +56,19 @@ struct TartMode : Mode {
 		glm::vec3 rot_axis;				// Tracking current rotation axis when editing rotation
 	};
 	std::vector<Fruit> fruits;
-	std::array<bool, 4> seen_fruits; 	// just to make sure all fruits were loaded
 
 	uint8_t current_fruit_index = 0;
-	uint8_t max_fruit = 4;			// Max amount of fruits in the scene		// TODO change as add fruit
-	uint8_t num_fruit = 0;			// Number of fruits placed
+	static const uint8_t max_fruit = 7;	// Max amount of fruits in the scene // TODO change as add fruit
+	uint8_t num_fruit = 0;				// Number of fruits placed
+	std::array<bool, max_fruit> seen_fruits; 	// just to make sure all fruits were loaded
+
 	int8_t get_next_available_index();
 
 	// Tart Shell
 	struct Tart {
 		Scene::Transform *base;
 		Scene::Transform *rim;
+		Scene::Transform *cream;
 	};
 	Tart tart;
 	float tart_base_depth = 1.0f;
@@ -77,3 +86,6 @@ struct TartMode : Mode {
 	Scene::Camera *camera = nullptr;
 
 };
+
+
+//8.1, -3.3, 8.3
